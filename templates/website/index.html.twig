@@ -1,0 +1,28 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Websites{% endblock %}
+
+{% block body %}
+<table class="table table-striped text-center">
+  <thead class="thead-dark">
+    <tr>
+      <th scope="col">Name</th>
+      <th scope="col">Domain</th>
+      <th scope="col">Status</th>
+      <th scope="col">Response time</th>
+      <th scope="col">Last update</th>
+    </tr>
+  </thead>
+  <tbody>
+     {% for website in websites %}
+    <tr>
+      <td>{{ website.name }}</td>
+      <td><a href="{{ website.domain }}">{{ website.domain }}</a></td>
+      <td>{{ website.status }}</td>
+      <td>{{ website.responseTime }}</td>
+      <td>{{ website.updatedAt|date }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
