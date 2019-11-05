@@ -3,6 +3,10 @@
 ## Description of the project
 A pingdom retrieving infos on requested websites and displaying it on a front. I use it to monitor websites i manage as a freelance.
 
+## How to install
+> composer install
+> php bin/console d:m:m
+
 ## How to run
 Use any webserver with php. For the database, i am using sqlite in developpement, just change the conf in order to use mysql.
 
