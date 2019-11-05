@@ -18,8 +18,15 @@
     <tr>
       <td>{{ website.name }}</td>
       <td><a href="{{ website.domain }}">{{ website.domain }}</a></td>
-      <td>{{ website.status }}</td>
-      <td>{{ website.responseTime }}</td>
+      <td>
+        <img class="inline-image" src="assets/images/{% if website.status == 200 %}Basic_green_dot.png{% else %}Basic_red_dot.png{% endif %}"/>
+        {{ website.status }}
+      </td>
+      <td>
+        <img class="inline-image" src="assets/images/{% if website.responseTime < 1 %}Basic_green_dot.png
+        {% elseif website.responseTime < 5 %}basic_orange_dot.png{% else %}Basic_red_dot.png{% endif %}"/>
+        {{ website.responseTime }}
+      </td>
       <td>{{ website.updatedAt|date }}</td>
     </tr>
     {% endfor %}

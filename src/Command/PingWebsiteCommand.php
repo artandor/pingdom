@@ -13,7 +13,7 @@ use App\Entity\Website;
 
 class PingWebsiteCommand extends Command
 {
-    protected static $defaultName = 'app:ping-website';
+    protected static $defaultName = 'app:website:ping';
     
     private $em;
 
