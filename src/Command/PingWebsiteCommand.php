@@ -9,6 +9,8 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
 use App\Entity\Website;
 
 class PingWebsiteCommand extends Command
@@ -16,11 +18,13 @@ class PingWebsiteCommand extends Command
     protected static $defaultName = 'app:website:ping';
     
     private $em;
+    private $mailer;
 
-    public function __construct(EntityManagerInterface $em)
+    public function __construct(EntityManagerInterface $em, MailerInterface $mailer)
     {
         parent::__construct();
         $this->em = $em;
+        $this->mailer = $mailer;
     }
 
     protected function configure()
@@ -51,6 +55,7 @@ class PingWebsiteCommand extends Command
             foreach($websitesToPing as $website) {
                 $io->note(sprintf('Pinging %s', $website));
                 $website = $this->callWebsite($website);
+                $website = $this->sendAlert($this->mailer, $website);
                 $this->em->persist($website);
                 $this->em->flush();
                 $output->writeln('');
@@ -61,6 +66,7 @@ class PingWebsiteCommand extends Command
             foreach($websiteRepo->findAll() as $website) {
                 $io->note(sprintf('Pinging %s', $website));
                 $website = $this->callWebsite($website);
+                $website = $this->sendAlert($this->mailer, $website);
                 $this->em->persist($website);
                 $this->em->flush();
                 $output->writeln('');
@@ -94,10 +100,46 @@ class PingWebsiteCommand extends Command
         {
             $info = curl_getinfo($ch);
             echo 'Took ' . $info['total_time'] . ' seconds to send a request to ' . $info['url'];
+
             $website->setStatus($info['http_code']);
+            if($website->getRedirectTo() == $info['redirect_url']) {
+                $website->setLastOkStatus(new \DateTime('now'));
+                $website->setRedirectionOk(true);
+            } else if(in_array($info['http_code'], [200])) {
+                $website->setLastOkStatus(new \DateTime('now'));
+            } else {
+                $website->setRedirectionOk(false);
+            }
             $website->setResponseTime($info['total_time']);
         }
         curl_close($ch);
+        return $website;
+    }
+    
+    private function sendAlert(MailerInterface $mailer, Website $website): ?Website {
+        if(!$website->getMailingList()) {
+            return $website;
+        }
+        
+        if($website->getLastAlertSent()) {
+         $date = clone $website->getLastAlertSent();
+         $date->add(new \DateInterval('PT24H'));
+        }
+        
+        if($website->getConsecutiveFailAmount() > 3) {
+            if (!isset($date) || new \Datetime("now") > $date) {
+                dump("on passe dans l'envoi de mail");
+                $email = (new Email())
+                    ->from('millt.nico@gmail.com')
+                    ->to(...$website->getMailingList())
+                    ->priority(Email::PRIORITY_HIGH)
+                    ->subject('Alert status for website : ' . $website->getName())
+                    ->html(sprintf('<p>The website %s encountered an error. Status Code %s</p>', $website->getName(), $website->getStatus()));
+        
+                $website->setLastAlertSent(new \Datetime('now'));
+                $mailer->send($email);
+            }
+        }
         return $website;
     }
 }

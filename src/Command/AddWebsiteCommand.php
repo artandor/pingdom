@@ -29,7 +29,8 @@ class AddWebsiteCommand extends Command
             ->setDescription('Add a website to the list of managed websites.')
             ->addOption('name', null, InputOption::VALUE_REQUIRED, 'Name of the website')
             ->addOption('domain', null, InputOption::VALUE_REQUIRED, 'Domain of the website')
-            ->addOption('https', null, InputOption::VALUE_NONE, 'Is the website using https too ?')
+            ->addOption('redirectTo', null, InputOption::VALUE_OPTIONAL, 'Where should this adress redirect to ?')
+            ->addOption('mail', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Emails of peoples to alert in case of multiple failure.')
         ;
     }
 
@@ -39,15 +40,16 @@ class AddWebsiteCommand extends Command
         
         $name = $input->getOption('name');
         $domain = $input->getOption('domain');
+        $redirectTo = $input->getOption('redirectTo');
+        $mailingList = $input->getOption('mail');
 
         if ($name && $domain) {
             $io->note(sprintf('Creating website with name %s and domain %s', $name, $domain));
             $newWebsite = new Website();
             $newWebsite->setName($name);
             $newWebsite->setDomain($domain);
-            if ($input->getOption('https')) {
-                $newWebsite->setHttps(true);
-            }
+            $newWebsite->setRedirectTo($redirectTo);
+            $newWebsite->setMailingList($mailingList);
             $this->em->persist($newWebsite);
             $this->em->flush();
         } else {

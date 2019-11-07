@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20191104201350 extends AbstractMigration
+final class Version20191106150417 extends AbstractMigration
 {
     public function getDescription() : string
     {
@@ -22,7 +22,8 @@ final class Version20191104201350 extends AbstractMigration
         // this up() migration is auto-generated, please modify it to your needs
         $this->abortIf($this->connection->getDatabasePlatform()->getName() !== 'sqlite', 'Migration can only be executed safely on \'sqlite\'.');
 
-        $this->addSql('CREATE TABLE website (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, name VARCHAR(255) NOT NULL, created_at DATETIME NOT NULL, updated_at DATETIME DEFAULT NULL, domain VARCHAR(255) NOT NULL, status INTEGER DEFAULT NULL, response_time DOUBLE PRECISION DEFAULT NULL)');
+        $this->addSql('CREATE TABLE website (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, name VARCHAR(255) NOT NULL, created_at DATETIME NOT NULL, updated_at DATETIME DEFAULT NULL, domain VARCHAR(255) NOT NULL, status INTEGER DEFAULT NULL, response_time DOUBLE PRECISION DEFAULT NULL, mailing_list CLOB DEFAULT NULL --(DC2Type:array)
+        , consecutive_fail_amount INTEGER NOT NULL, last_alert_sent DATETIME DEFAULT NULL, last_ok_status DATETIME DEFAULT NULL, redirect_to VARCHAR(255) DEFAULT NULL, redirection_ok BOOLEAN DEFAULT NULL)');
     }
 
     public function down(Schema $schema) : void
