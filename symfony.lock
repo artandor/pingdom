@@ -99,6 +99,9 @@
     "psr/log": {
         "version": "1.1.2"
     },
+    "symfony/browser-kit": {
+        "version": "v4.3.6"
+    },
     "symfony/cache": {
         "version": "v4.3.6"
     },
@@ -121,13 +124,34 @@
             "config/bootstrap.php"
         ]
     },
+    "symfony/css-selector": {
+        "version": "v4.3.6"
+    },
     "symfony/debug": {
         "version": "v4.3.6"
+    },
+    "symfony/debug-bundle": {
+        "version": "4.1",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "master",
+            "version": "4.1",
+            "ref": "f8863cbad2f2e58c4b65fa1eac892ab189971bea"
+        },
+        "files": [
+            "config/packages/dev/debug.yaml"
+        ]
+    },
+    "symfony/debug-pack": {
+        "version": "v1.0.7"
     },
     "symfony/dependency-injection": {
         "version": "v4.3.6"
     },
     "symfony/doctrine-bridge": {
+        "version": "v4.3.6"
+    },
+    "symfony/dom-crawler": {
         "version": "v4.3.6"
     },
     "symfony/dotenv": {
@@ -176,6 +200,12 @@
             "src/Kernel.php"
         ]
     },
+    "symfony/http-client": {
+        "version": "v4.3.6"
+    },
+    "symfony/http-client-contracts": {
+        "version": "v1.1.7"
+    },
     "symfony/http-foundation": {
         "version": "v4.3.6"
     },
@@ -196,6 +226,22 @@
     },
     "symfony/orm-pack": {
         "version": "v1.0.7"
+    },
+    "symfony/phpunit-bridge": {
+        "version": "4.3",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "master",
+            "version": "4.3",
+            "ref": "b0582341f1df39aaf3a9a866cdbe49937da35984"
+        },
+        "files": [
+            ".env.test",
+            "bin/phpunit",
+            "config/bootstrap.php",
+            "phpunit.xml.dist",
+            "tests/.gitignore"
+        ]
     },
     "symfony/polyfill-intl-idn": {
         "version": "v1.12.0"
@@ -229,6 +275,9 @@
     "symfony/stopwatch": {
         "version": "v4.3.6"
     },
+    "symfony/test-pack": {
+        "version": "v1.0.6"
+    },
     "symfony/translation-contracts": {
         "version": "v1.1.7"
     },
@@ -251,6 +300,9 @@
     },
     "symfony/twig-pack": {
         "version": "v1.0.0"
+    },
+    "symfony/var-dumper": {
+        "version": "v4.3.6"
     },
     "symfony/var-exporter": {
         "version": "v4.3.6"

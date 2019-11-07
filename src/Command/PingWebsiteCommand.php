@@ -1,103 +1,117 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Entity\Website;
+use App\Repository\WebsiteRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Doctrine\ORM\EntityManagerInterface;
-use App\Entity\Website;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class PingWebsiteCommand extends Command
 {
     protected static $defaultName = 'app:website:ping';
-    
-    private $em;
 
-    public function __construct(EntityManagerInterface $em)
-    {
+    private $em;
+    private $websiteRepository;
+    private $client;
+
+    public function __construct(
+        EntityManagerInterface $em,
+        WebsiteRepository $websiteRepository,
+        HttpClientInterface $curlHttpClient
+    ) {
         parent::__construct();
         $this->em = $em;
+        $this->websiteRepository = $websiteRepository;
+        $this->client = $curlHttpClient;
     }
 
-    protected function configure()
+    protected function configure(): void
     {
-        $this
-            ->setDescription('Ping one or more websites included in database.')
-            ->addArgument('websites', InputArgument::IS_ARRAY, 'Argument description')
-            ->addOption('all', 'a', InputOption::VALUE_NONE, 'Ping all websites to refresh status.')
-        ;
+        $this->setDescription('Ping one or more websites included in database.')->addArgument(
+            'websites',
+            InputArgument::IS_ARRAY,
+            'Argument description'
+        )->addOption(
+            'all',
+            'a',
+            InputOption::VALUE_NONE,
+            'Ping all websites to refresh status. This override websites argument.'
+        );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $table = new Table($output);
         $io = new SymfonyStyle($input, $output);
-        $targettedWebsites = $input->getArgument('websites');
-        
-        $websiteRepo = $this->em->getRepository(Website::class);
-        
-        
-        
-        $websitesToPing = $websiteRepo->findBy(
-            ['name' => $targettedWebsites],
-        );
-
-        
-        
-        if ($websitesToPing) {
-            foreach($websitesToPing as $website) {
-                $io->note(sprintf('Pinging %s', $website));
-                $website = $this->callWebsite($website);
-                $this->em->persist($website);
-                $this->em->flush();
-                $output->writeln('');
-                $io->success('Status updated.');
-            }
-        } else if ($input->getOption('all')) {
-            $io->note('Requesting all websites in database.');
-            foreach($websiteRepo->findAll() as $website) {
-                $io->note(sprintf('Pinging %s', $website));
-                $website = $this->callWebsite($website);
-                $this->em->persist($website);
-                $this->em->flush();
-                $output->writeln('');
-                $io->success('Status updated.');
-            }
+        if ($input->getOption('all')) {
+            $io->title('Requesting all websites in database.');
+            $websitesToPing = $this->websiteRepository->findAll();
+        } elseif (!empty($input->getArgument('websites'))) {
+            $targettedWebsites = $input->getArgument('websites');
+            $websitesToPing = $this->websiteRepository->findBy(
+                ['name' => $targettedWebsites]
+            );
         } else {
-            $existingWebsites = $websiteRepo->findAll();
-            $output->writeln([
-                'Existing websites',
-                '============',
-            ]);
-            foreach($existingWebsites as $existingWebsite) {
-                $output->writeln($existingWebsite);
-            }
-            $output->writeln('============');
-            $io->warning('You must specify website(s) to ping or ask for all of them through -a / --all.');
-            return 1;
-        }
+            $io->error('You should submit at least one website or use option --all');
 
-        //$io->success('Successfully requested all websites.');
+            return 0;
+        }
+        $this->pingWebsites($websitesToPing, $io);
+        $io->title('New status');
+        $this->logWebsites($websitesToPing, $table);
 
         return 0;
     }
-    
-    private function callWebsite(Website $website) {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $website->getDomain());
-        curl_setopt($ch, CURLOPT_NOBODY, true);
-        curl_exec($ch);
-        if(!curl_errno($ch))
-        {
-            $info = curl_getinfo($ch);
-            echo 'Took ' . $info['total_time'] . ' seconds to send a request to ' . $info['url'];
-            $website->setStatus($info['http_code']);
-            $website->setResponseTime($info['total_time']);
+
+    private function pingWebsites(array $websitesToPing, SymfonyStyle $io): void
+    {
+        $responses = [];
+        /** @var Website $website */
+        foreach ($websitesToPing as $website) {
+            $responses[] = $this->client->request('GET', $website->getDomain(), ['user_data' => $website]);
         }
-        curl_close($ch);
-        return $website;
+        foreach ($this->client->stream($responses) as $response => $chunk) {
+            /** @var Website $actualWebsite */
+            $actualWebsite = $response->getInfo('user_data');
+            if ($chunk->isFirst()) {
+                $io->text(sprintf('Website %s answered', $actualWebsite->getName()));
+            }
+            $actualWebsite->setStatus($response->getStatusCode());
+            $actualWebsite->setResponseTime($response->getInfo('total_time'));
+        }
+        $this->em->flush();
+    }
+
+    private function logWebsites(array $websitesToPing, Table $table): void
+    {
+        $table->setHeaders(['Name', 'Domain', 'Status code', 'Response time'])->setRows(
+            $this->getLogRows($websitesToPing)
+        );
+        $table->render();
+    }
+
+    private function getLogRows(array $websitesToPing): array
+    {
+        $rowsToLog = [];
+        /** @var Website $website */
+        foreach ($websitesToPing as $website) {
+            $rowsToLog[] = [
+                $website->getName(),
+                $website->getDomain(),
+                $website->getStatus(),
+                $website->getResponseTime(),
+            ];
+        }
+
+        return $rowsToLog;
     }
 }
