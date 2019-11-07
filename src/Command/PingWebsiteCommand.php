@@ -89,8 +89,7 @@ class PingWebsiteCommand extends Command
         }
 
         if($website->getConsecutiveFailAmount() > 3) {
-            if (!isset($date) || new \Datetime("now") > $date) {
-                dump("on passe dans l'envoi de mail");
+            if (!isset($date) || new \Datetime('now') > $date) {
                 $email = (new Email())
                     ->from('millt.nico@gmail.com')
                     ->to(...$website->getMailingList())
