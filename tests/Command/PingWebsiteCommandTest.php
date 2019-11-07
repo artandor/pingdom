@@ -11,6 +11,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
+use Symfony\Component\Mailer\MailerInterface;
 
 class PingWebsiteCommandTest extends KernelTestCase
 {
@@ -25,7 +26,7 @@ class PingWebsiteCommandTest extends KernelTestCase
         $websiteRepositoryMock = $this->createMock(WebsiteRepository::class);
         $websiteRepositoryMock->method('findAll')->willReturn([$website]);
         $command = new PingWebsiteCommand(
-            $this->createMock(EntityManager::class), $websiteRepositoryMock, $curlHttpClientMock
+            $this->createMock(EntityManager::class), $websiteRepositoryMock, $curlHttpClientMock, $this->getMockForAbstractClass(MailerInterface::class)
         );
         $this->application->add($command);
         $command = $this->application->find(PingWebsiteCommand::getDefaultName());
