@@ -111,24 +111,34 @@ class PingWebsiteCommand extends Command
         foreach ($websitesToPing as $website) {
             $responses[] = $this->client->request('GET', $website->getDomain(), ['user_data' => $website]);
         }
-        foreach ($this->client->stream($responses) as $response => $chunk) {
+        foreach ($this->client->stream($responses, 0.1) as $response => $chunk) {
             /** @var Website $actualWebsite */
             $actualWebsite = $response->getInfo('user_data');
+            if ($chunk->isTimeout()) {
+                $io->text(sprintf('Website %s timed out', $actualWebsite->getName()));
+                $actualWebsite->setStatus(0);
+                $actualWebsite->setResponseTime(0);
+                $actualWebsite->setRedirectionOk(false);
+                $this->sendAlert($actualWebsite);
+                continue;
+            }
+
             if ($chunk->isFirst()) {
                 $io->text(sprintf('Website %s answered', $actualWebsite->getName()));
-                if (($responseStatusCode = $response->getStatusCode())) {
-                    $website->getLastOkStatus(new DateTimeImmutable());
+                if ($responseStatusCode = $response->getStatusCode()) {
+                    $actualWebsite->setLastOkStatus(new DateTimeImmutable());
                 }
                 if ($website->getRedirectTo() === $response->getInfo('redirect_url')) {
-                    $website->setRedirectionOk(true);
+                    $actualWebsite->setRedirectionOk(true);
                 } else {
-                    $website->setRedirectionOk(false);
+                    $actualWebsite->setRedirectionOk(false);
                 }
                 $actualWebsite->setStatus($responseStatusCode);
                 $actualWebsite->setResponseTime($response->getInfo('total_time'));
                 $this->sendAlert($actualWebsite);
             }
         }
+        $this->em->flush();
     }
 
     private function logWebsites(array $websitesToPing, Table $table): void

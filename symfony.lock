@@ -2,6 +2,12 @@
     "egulias/email-validator": {
         "version": "2.1.11"
     },
+    "symfony/browser-kit": {
+        "version": "v4.3.6"
+    },
+    "symfony/css-selector": {
+        "version": "v4.3.6"
+    },
     "symfony/debug-bundle": {
         "version": "4.1",
         "recipe": {
@@ -17,6 +23,9 @@
     "symfony/debug-pack": {
         "version": "v1.0.7"
     },
+    "symfony/dom-crawler": {
+        "version": "v4.3.6"
+    },
     "symfony/google-mailer": {
         "version": "4.3",
         "recipe": {
@@ -25,6 +34,12 @@
             "version": "4.3",
             "ref": "da7b29c169c9de4359a75be96d729438129d7d86"
         }
+    },
+    "symfony/http-client": {
+        "version": "v4.3.6"
+    },
+    "symfony/http-client-contracts": {
+        "version": "v1.1.8"
     },
     "symfony/mailer": {
         "version": "4.3",
@@ -52,6 +67,9 @@
     },
     "symfony/profiler-pack": {
         "version": "v1.0.4"
+    },
+    "symfony/test-pack": {
+        "version": "v1.0.6"
     },
     "symfony/web-profiler-bundle": {
         "version": "3.3",

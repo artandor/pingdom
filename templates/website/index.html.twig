@@ -22,7 +22,7 @@
       <td><a href="{{ website.domain }}">{{ website.domain }}</a>
         {% if website.redirectTo %}
         <br/>
-        <img class="inline-image" src="assets/images/{% if website.redirectionOk %}Basic_green_dot.png{% else %}Basic_red_dot.png{% endif %}">
+        <img class="inline-image" src="assets/images/{% if website.redirectionOk or website.status == 200 %}Basic_green_dot.png{% else %}Basic_red_dot.png{% endif %}">
         Should redirect To : <a href="{{ website.redirectTo }}">{{ website.redirectTo }}</td>
         {% endif %}
       <td>
