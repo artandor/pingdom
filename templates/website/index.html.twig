@@ -10,16 +10,25 @@
       <th scope="col">Domain</th>
       <th scope="col">Status</th>
       <th scope="col">Response time</th>
-      <th scope="col">Last update</th>
+      <th scope="col">Consecutive fails</th>
+      <th scope="col">Last ok status</th>
+      <th scope="col">Last alert sent</th>
     </tr>
   </thead>
   <tbody>
      {% for website in websites %}
     <tr>
       <td>{{ website.name }}</td>
-      <td><a href="{{ website.domain }}">{{ website.domain }}</a></td>
+      <td><a href="{{ website.domain }}">{{ website.domain }}</a>
+        {% if website.redirectTo %}
+        <br/>
+        <img class="inline-image" src="assets/images/{% if website.redirectionOk or website.status == 200 %}Basic_green_dot.png{% else %}Basic_red_dot.png{% endif %}">
+        Should redirect To : <a href="{{ website.redirectTo }}">{{ website.redirectTo }}</td>
+        {% endif %}
       <td>
-        <img class="inline-image" src="assets/images/{% if website.status == 200 %}Basic_green_dot.png{% else %}Basic_red_dot.png{% endif %}"/>
+        <img class="inline-image" src="assets/images/{% if (website.status == 200 and website.redirectionOk) or website.redirectionOk  %}Basic_green_dot.png
+        {% elseif website.status in 301..302 %}basic_orange_dot.png
+        {% else %}Basic_red_dot.png{% endif %}"/>
         {{ website.status }}
       </td>
       <td>
@@ -27,7 +36,9 @@
         {% elseif website.responseTime < 5 %}basic_orange_dot.png{% else %}Basic_red_dot.png{% endif %}"/>
         {{ website.responseTime }}
       </td>
-      <td>{{ website.updatedAt|date }}</td>
+      <td>{{ website.consecutiveFailAmount }}</td>
+      <td>{% if website.lastOkStatus != null %}{{ website.lastOkStatus|date }}{% else %}Never{% endif %}</td>
+      <td>{% if website.lastAlertSent != null %}{{ website.lastAlertSent|date }}{% else %}Never{% endif %}</td>
     </tr>
     {% endfor %}
   </tbody>

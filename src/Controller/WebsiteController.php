@@ -14,7 +14,7 @@ class WebsiteController extends AbstractController
     public function index()
     {
         $websites = $this->getDoctrine()
-        ->getRepository(Website::class)->findAll();
+        ->getRepository(Website::class)->findBy([], ["name" => "ASC"]);
         return $this->render('website/index.html.twig', [
             'websites' => $websites,
         ]);
