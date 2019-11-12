@@ -111,7 +111,7 @@ class PingWebsiteCommand extends Command
         foreach ($websitesToPing as $website) {
             $responses[] = $this->client->request('GET', $website->getDomain(), ['user_data' => $website]);
         }
-        foreach ($this->client->stream($responses, 0.1) as $response => $chunk) {
+        foreach ($this->client->stream($responses) as $response => $chunk) {
             /** @var Website $actualWebsite */
             $actualWebsite = $response->getInfo('user_data');
             if ($chunk->isTimeout()) {
