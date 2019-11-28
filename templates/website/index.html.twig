@@ -19,28 +19,28 @@
      {% for website in websites %}
     <tr>
       <td>{{ website.name }}</td>
-      <td><a href="{{ website.domain }}">{{ website.domain }}</a>
+      <td class="
+        {% if not website.redirectionOk or website.status != 200 %}
+        table-danger
+        {% endif %}
+      ">
+        <a href="{{ website.domain }}">{{ website.domain }}</a>
         {% if website.redirectTo %}
         <br/>
-        <img class="inline-image" src="
-        {% if website.redirectionOk or website.status == 200 %}
-        {{ asset('assets/images/Basic_green_dot.png') }}
-        {% else %}{{ asset('assets/images/Basic_red_dot.png') }}{% endif %}">
         Should redirect To : <a href="{{ website.redirectTo }}">{{ website.redirectTo }}</td>
         {% endif %}
-      <td>
-        <img class="inline-image" src="
-        {% if (website.status == 200 and website.redirectionOk) or website.redirectionOk  %}{{ asset('assets/images/Basic_green_dot.png') }}
-        {% elseif website.status in 301..302 %}{{ asset('assets/images/basic_orange_dot.png') }}
-        {% else %}{{ asset('assets/images/Basic_red_dot.png') }}{% endif %}" 
-        alt="Status Code"/>
+      <td class="
+      {% if (website.status == 200 and website.redirectionOk) or website.redirectionOk  %}table-success
+        {% elseif website.status in 301..302 %}table-warning
+        {% else %}table-danger{% endif %}
+        ">
         {{ website.status }}
       </td>
-      <td>
-        <img class="inline-image" src="
-        {% if website.responseTime < 1 %}{{ asset('assets/images/Basic_green_dot.png') }}
-        {% elseif website.responseTime < 5 %}{{ asset('assets/images/basic_orange_dot.png') }}
-        {% else %}{{ asset('assets/images/Basic_red_dot.png') }}{% endif %}"/>
+      <td class="
+      {% if website.responseTime < 1 %}table-success
+        {% elseif website.responseTime < 5 %}table-warning
+        {% else %}table-danger{% endif %}
+      ">
         {{ website.responseTime }}
       </td>
       <td>{{ website.consecutiveFailAmount }}</td>
