@@ -6,7 +6,9 @@ framework:
         transports:
             # https://symfony.com/doc/current/messenger.html#transport-configuration
             async:
-                dsn: '%env(MESSENGER_TRANSPORT_DSN)%?queue_name=async'
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    queue_name: async
                 retry_strategy:
                     max_retries: 3
                     # milliseconds delay
@@ -15,7 +17,11 @@ framework:
                     # e.g. 1 second delay, 2 seconds, 4 seconds
                     multiplier: 2
                     max_delay: 0
-            failed: '%env(MESSENGER_TRANSPORT_DSN)%?queue_name=failed'
+            failed: 
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    queue_name: failed
+            
             # sync: 'sync://'
 
         routing:

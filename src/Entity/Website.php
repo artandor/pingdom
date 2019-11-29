@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use DateTimeImmutable;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\WebsiteRepository")
@@ -127,6 +128,7 @@ class Website
         $this->updated_at = new \DateTime("now");
         if($this->redirectionOk && $this->status == 200) {
             $this->consecutiveFailAmount = 0;
+            $this->setLastOkStatus(new DateTimeImmutable());
         } else {
             $this->consecutiveFailAmount++;
         }

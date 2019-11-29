@@ -5,7 +5,6 @@ namespace App\Command;
 
 use App\Entity\Website;
 use App\Repository\WebsiteRepository;
-use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\Table;
@@ -125,15 +124,12 @@ class PingWebsiteCommand extends Command
 
             if ($chunk->isFirst()) {
                 $io->text(sprintf('Website %s answered', $actualWebsite->getName()));
-                if ($responseStatusCode = $response->getStatusCode()) {
-                    $actualWebsite->setLastOkStatus(new DateTimeImmutable());
-                }
                 if ($actualWebsite->getRedirectTo() === $response->getInfo('redirect_url')) {
                     $actualWebsite->setRedirectionOk(true);
                 } else {
                     $actualWebsite->setRedirectionOk(false);
                 }
-                $actualWebsite->setStatus($responseStatusCode);
+                $actualWebsite->setStatus($response->getStatusCode());
                 $actualWebsite->setResponseTime($response->getInfo('total_time'));
                 $this->sendAlert($actualWebsite);
             }
