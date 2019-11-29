@@ -20,7 +20,7 @@
     <tr>
       <td>{{ website.name }}</td>
       <td class="
-        {% if not website.redirectionOk or website.status != 200 %}
+        {% if not website.redirectionOk %}
         table-danger
         {% endif %}
       ">
@@ -30,14 +30,14 @@
         Should redirect To : <a href="{{ website.redirectTo }}">{{ website.redirectTo }}</td>
         {% endif %}
       <td class="
-      {% if (website.status == 200 and website.redirectionOk) or website.redirectionOk  %}table-success
+      {% if (website.status == 200 and website.redirectionOk)  %}
         {% elseif website.status in 301..302 %}table-warning
         {% else %}table-danger{% endif %}
         ">
         {{ website.status }}
       </td>
       <td class="
-      {% if website.responseTime < 1 %}table-success
+      {% if website.responseTime < 1 %}
         {% elseif website.responseTime < 5 %}table-warning
         {% else %}table-danger{% endif %}
       ">

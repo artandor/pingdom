@@ -128,7 +128,7 @@ class PingWebsiteCommand extends Command
                 if ($responseStatusCode = $response->getStatusCode()) {
                     $actualWebsite->setLastOkStatus(new DateTimeImmutable());
                 }
-                if ($website->getRedirectTo() === $response->getInfo('redirect_url')) {
+                if ($actualWebsite->getRedirectTo() === $response->getInfo('redirect_url')) {
                     $actualWebsite->setRedirectionOk(true);
                 } else {
                     $actualWebsite->setRedirectionOk(false);

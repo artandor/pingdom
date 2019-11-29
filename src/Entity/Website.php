@@ -125,7 +125,7 @@ class Website
     public function onPreUpdate()
     {
         $this->updated_at = new \DateTime("now");
-        if($this->redirectionOk || ($this->status == 200 && !$this->redirectTo)) {
+        if($this->redirectionOk && $this->status == 200) {
             $this->consecutiveFailAmount = 0;
         } else {
             $this->consecutiveFailAmount++;
