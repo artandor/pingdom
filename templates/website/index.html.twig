@@ -53,7 +53,12 @@
       </td>
       <td>{{ website.consecutiveFailAmount }}</td>
       <td>{% if website.lastOkStatus != null %}{{ website.lastOkStatus|date }}{% else %}Never{% endif %}</td>
-      <td>{% if website.lastAlertSent != null %}{{ website.lastAlertSent|date }}{% else %}Never{% endif %}</td>
+      <td>
+        {% if website.mailingList == null %}No mailing list configured.
+        {% else %}
+          {% if website.lastAlertSent != null %}{{ website.lastAlertSent|date }}{% else %}Never{% endif %}
+        {% endif %}
+      </td>
     </tr>
     {% endfor %}
   </tbody>
