@@ -118,6 +118,13 @@ class Website
     {
         return $this->updated_at;
     }
+    
+    public function setUpdatedAt(\DateTime $date): self
+    {
+        $this->updated_at = $date;
+
+        return $this;
+    }
 
     /**
      * Gets triggered every time on update

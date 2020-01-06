@@ -34,14 +34,22 @@
         {% elseif website.status in 301..302 %}table-warning
         {% else %}table-danger{% endif %}
         ">
-        {{ website.status }}
+        {% if website.status < 0 %}
+          No response
+        {% else %}
+          {{ website.status }}
+        {% endif %}
       </td>
       <td class="
-      {% if website.responseTime < 1 %}
-        {% elseif website.responseTime < 5 %}table-warning
+      {% if website.responseTime < 1 and website.responseTime > 0 %}
+        {% elseif website.responseTime < 5 and website.responseTime > 0 %}table-warning
         {% else %}table-danger{% endif %}
       ">
-        {{ website.responseTime }}
+        {% if website.status < 0  %}
+          No response
+        {% else %}
+          {{ website.responseTime }}
+        {% endif %}
       </td>
       <td>{{ website.consecutiveFailAmount }}</td>
       <td>{% if website.lastOkStatus != null %}{{ website.lastOkStatus|date }}{% else %}Never{% endif %}</td>

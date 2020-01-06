@@ -16,6 +16,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 class PingWebsiteCommand extends Command
 {
@@ -111,35 +112,45 @@ class PingWebsiteCommand extends Command
             $responses[] = $this->client->request('GET', $website->getDomain(), ['user_data' => $website]);
         }
         foreach ($this->client->stream($responses) as $response => $chunk) {
-            /** @var Website $actualWebsite */
-            $actualWebsite = $response->getInfo('user_data');
-            if ($chunk->isTimeout()) {
-                $io->text(sprintf('Website %s timed out', $actualWebsite->getName()));
-                $actualWebsite->setStatus(0);
-                $actualWebsite->setResponseTime(0);
+            try {
+                /** @var Website $actualWebsite */
+                $actualWebsite = $response->getInfo('user_data');
+                if ($chunk->isTimeout()) {
+                    $io->text(sprintf('Website %s timed out', $actualWebsite->getName()));
+                    $actualWebsite->setStatus(-1);
+                    $actualWebsite->setResponseTime($response->getInfo('total_time'));
+                    $actualWebsite->setRedirectionOk(false);
+                    $this->sendAlert($actualWebsite);
+                    continue;
+                }
+    
+                if ($chunk->isFirst()) {
+                    $io->text(sprintf('Website %s answered', $actualWebsite->getName()));
+                    if ($actualWebsite->getRedirectTo() === $response->getInfo('redirect_url')) {
+                        $actualWebsite->setRedirectionOk(true);
+                    } else {
+                        $actualWebsite->setRedirectionOk(false);
+                    }
+                    $actualWebsite->setStatus($response->getStatusCode());
+                    $actualWebsite->setResponseTime($response->getInfo('total_time'));
+                    $this->sendAlert($actualWebsite);
+                }
+            } catch (TransportExceptionInterface $e) {
+                $io->text(sprintf('Website %s did not answer.', $actualWebsite->getName()));
+                $actualWebsite->setStatus(-1);
+                $actualWebsite->setResponseTime(null);
                 $actualWebsite->setRedirectionOk(false);
+                $actualWebsite->setUpdatedAt(new \DateTime("now"));
                 $this->sendAlert($actualWebsite);
-                continue;
             }
 
-            if ($chunk->isFirst()) {
-                $io->text(sprintf('Website %s answered', $actualWebsite->getName()));
-                if ($actualWebsite->getRedirectTo() === $response->getInfo('redirect_url')) {
-                    $actualWebsite->setRedirectionOk(true);
-                } else {
-                    $actualWebsite->setRedirectionOk(false);
-                }
-                $actualWebsite->setStatus($response->getStatusCode());
-                $actualWebsite->setResponseTime($response->getInfo('total_time'));
-                $this->sendAlert($actualWebsite);
-            }
         }
         $this->em->flush();
     }
 
     private function logWebsites(array $websitesToPing, Table $table): void
     {
-        $table->setHeaders(['Name', 'Domain', 'Status code', 'Response time'])->setRows(
+        $table->setHeaders(['Name', 'Domain', 'Status code', 'Response time', 'Consecutive fails'])->setRows(
             $this->getLogRows($websitesToPing)
         );
         $table->render();
@@ -155,6 +166,7 @@ class PingWebsiteCommand extends Command
                 $website->getDomain(),
                 $website->getStatus(),
                 $website->getResponseTime(),
+                $website->getConsecutiveFailAmount(),
             ];
         }
 
