@@ -2,14 +2,11 @@
     "egulias/email-validator": {
         "version": "2.1.11"
     },
+    "php": {
+        "version": "7.3"
+    },
     "symfony/asset": {
         "version": "v4.3.8"
-    },
-    "symfony/browser-kit": {
-        "version": "v4.3.6"
-    },
-    "symfony/css-selector": {
-        "version": "v4.3.6"
     },
     "symfony/debug-bundle": {
         "version": "4.1",
@@ -26,17 +23,8 @@
     "symfony/debug-pack": {
         "version": "v1.0.7"
     },
-    "symfony/dom-crawler": {
-        "version": "v4.3.6"
-    },
-    "symfony/google-mailer": {
-        "version": "4.3",
-        "recipe": {
-            "repo": "github.com/symfony/recipes",
-            "branch": "master",
-            "version": "4.3",
-            "ref": "da7b29c169c9de4359a75be96d729438129d7d86"
-        }
+    "symfony/error-handler": {
+        "version": "v4.4.4"
     },
     "symfony/http-client": {
         "version": "v4.3.6"

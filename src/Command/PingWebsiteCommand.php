@@ -15,6 +15,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
@@ -90,13 +91,16 @@ class PingWebsiteCommand extends Command
 
         if($website->getConsecutiveFailAmount() > 3) {
             if (!isset($date) || new \Datetime('now') > $date) {
-                $email = (new Email())
-                    ->from('millt.nico@gmail.com')
+                $email = (new TemplatedEmail())
+                    ->from('webmaster@nicolasmylle.fr')
                     ->to(...$website->getMailingList())
                     ->priority(Email::PRIORITY_HIGH)
                     ->subject('Alert status for website : ' . $website->getName())
-                    ->html(sprintf('<p>The website %s encountered an error. Status Code %s</p>', $website->getName(), $website->getStatus()));
-
+                    ->htmlTemplate('email/error.html.twig')
+                    ->context([
+                            'website' => $website
+                        ]);
+                    
                 $website->setLastAlertSent(new \Datetime('now'));
                 $this->mailer->send($email);
             }
