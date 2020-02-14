@@ -13,8 +13,11 @@ Use any webserver with php. For the database, i am using sqlite in developpement
 > symfony server:start
 
 ## How to use
-Add websites with this command
+Add websites with this command (minimal args)
 > php bin/console app:website:add --name "Once Upon A Day" --domain "https://once-upon-a-day.com/"
+
+Other args exists
+> php bin/console app:website:add --name "Once Upon A Day" --domain "https://once-upon-a-day.com" --redirectTo "https://fluffyunicorn.fr" --mail myfirstmail@artandor.fr --mail mysecondmail@work.fr
 
 Remove a website with this command
 > php bin/console app:website:remove --name "Once Upon A Day"
