@@ -130,7 +130,7 @@ class PingWebsiteCommand extends Command
     
                 if ($chunk->isFirst()) {
                     $io->text(sprintf('Website %s answered', $actualWebsite->getName()));
-                    if ($actualWebsite->getRedirectTo() === $response->getInfo('redirect_url')) {
+                    if (($actualWebsite->getRedirectTo() === $response->getInfo('redirect_url')) || ($actualWebsite->getRedirectTo() === $response->getInfo('url'))) {
                         $actualWebsite->setRedirectionOk(true);
                     } else {
                         $actualWebsite->setRedirectionOk(false);
