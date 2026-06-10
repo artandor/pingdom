@@ -2,7 +2,7 @@
 
 namespace App\Tests\Command;
 
-use App\Command\PingWebsiteCommand;
+use App\Command\WebsitePingCommand;
 use App\Entity\Website;
 use App\Repository\WebsiteRepository;
 use Doctrine\ORM\EntityManager;
@@ -22,28 +22,28 @@ class PingWebsiteCommandTest extends KernelTestCase
         $responseMock = new MockResponse([], ['http_code' => 500]);
         $curlHttpClientMock = new MockHttpClient([$responseMock]);
         $website = new Website();
-        $website->setDomain('http://google.fr')->setName('poney');
+        $website->setDomain('http://google.fr')->setName('google');
+
         $websiteRepositoryMock = $this->createMock(WebsiteRepository::class);
         $websiteRepositoryMock->method('findAll')->willReturn([$website]);
-        $command = new PingWebsiteCommand(
-            $this->createMock(EntityManager::class), $websiteRepositoryMock, $curlHttpClientMock, $this->getMockForAbstractClass(MailerInterface::class)
+        $websiteRepositoryMock->expects($this->once())->method('findAll');
+
+        $command = new WebsitePingCommand(
+            $websiteRepositoryMock, $curlHttpClientMock, $this->createStub(MailerInterface::class), $this->createStub(EntityManager::class)
         );
-        $this->application->add($command);
-        $command = $this->application->find(PingWebsiteCommand::getDefaultName());
         $commandTester = new CommandTester($command);
         $commandTester->execute(
             [
-                'command' => $command->getName(),
                 '--all' => true,
             ]
         );
         $output = $commandTester->getDisplay();
-        $this->assertContains('poney | http://google.fr | 500', $output);
+        $this->assertStringContainsString('google | http://google.fr | 500', $output);
     }
 
     public function testCommandMustHaveAWebsiteSpecified(): void
     {
-        $command = $this->application->find(PingWebsiteCommand::getDefaultName());
+        $command = $this->application->find('app:website:ping');
         $commandTester = new CommandTester($command);
         $commandTester->execute(
             [
@@ -51,7 +51,7 @@ class PingWebsiteCommandTest extends KernelTestCase
             ]
         );
         $output = $commandTester->getDisplay();
-        $this->assertContains('[ERROR] You should submit at least one website or use option --all', $output);
+        $this->assertStringContainsString('[ERROR] You should submit at least one website or use option --all', $output);
     }
 
     protected function setUp(): void

@@ -3,82 +3,54 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use DateTimeImmutable;
+use Doctrine\ORM\Mapping\PrePersist;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\WebsiteRepository")
- * @ORM\HasLifecycleCallbacks
- */
+#[ORM\Entity(repositoryClass: 'App\Repository\WebsiteRepository')]
+#[ORM\HasLifecycleCallbacks]
 class Website
 {
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
-    private $id;
+    #[ORM\Id]
+    #[ORM\Column(type: 'integer')]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    private ?int $id;
 
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private $name;
+    #[ORM\Column(type: 'string', length: 255)]
+    private ?string $name;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
-    private $created_at;
+    #[ORM\Column(type: 'datetime')]
+    private ?\DateTime $createdAt;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
-    private $updated_at;
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTime $updatedAt;
 
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private $domain;
+    #[ORM\Column(type: 'string', length: 255)]
+    private ?string $domain;
 
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
-    private $status;
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $status;
 
-    /**
-     * @ORM\Column(type="float", nullable=true)
-     */
-    private $responseTime;
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $responseTime;
 
-    /**
-     * @ORM\Column(type="array", nullable=true)
-     */
-    private $mailingList = [];
+    #[ORM\Column(type: 'simple_array', nullable: true)]
+    private array $mailingList = [];
 
-    /**
-     * @ORM\Column(type="integer")
-     */
-    private $consecutiveFailAmount = 0;
+    #[ORM\Column(type: 'integer')]
+    private int $consecutiveFailAmount = 0;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
-    private $lastAlertSent;
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $lastAlertSent;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
-    private $lastOkStatus;
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $lastOkStatus;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private $redirectTo;
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $redirectTo = null;
 
-    /**
-     * @ORM\Column(type="boolean", nullable=true)
-     */
-    private $redirectionOk;
-    
-    public function __toString(): ?string
+    #[ORM\Column(type: 'boolean', nullable: true)]
+    private ?bool $redirectionOk;
+
+    public function __toString(): string
     {
         return $this->name;
     }
@@ -102,40 +74,34 @@ class Website
 
     public function getCreatedAt(): ?\DateTimeInterface
     {
-        return $this->created_at;
+        return $this->createdAt;
     }
 
-    /**
-     * Gets triggered only on insert
-     * @ORM\PrePersist
-     */
+    #[Prepersist]
     public function onPrePersist()
     {
-        $this->created_at = new \DateTime("now");
+        $this->createdAt = new \DateTime("now");
     }
 
     public function getUpdatedAt(): ?\DateTimeInterface
     {
-        return $this->updated_at;
+        return $this->updatedAt;
     }
-    
+
     public function setUpdatedAt(\DateTime $date): self
     {
-        $this->updated_at = $date;
+        $this->updatedAt = $date;
 
         return $this;
     }
 
-    /**
-     * Gets triggered every time on update
-     * @ORM\PreUpdate
-     */
+    #[ORM\PreUpdate]
     public function onPreUpdate()
     {
-        $this->updated_at = new \DateTime("now");
+        $this->updatedAt = new \DateTime("now");
         if($this->redirectionOk && $this->status == 200) {
             $this->consecutiveFailAmount = 0;
-            $this->setLastOkStatus(new DateTimeImmutable());
+            $this->setLastOkStatus(new \DateTime());
         } else {
             $this->consecutiveFailAmount++;
         }
@@ -165,14 +131,15 @@ class Website
         return $this;
     }
 
-    public function getResponseTime(): ?float
+    public function getResponseTime(): ?int
     {
         return $this->responseTime;
     }
 
     public function setResponseTime(?float $responseTime): self
     {
-        $this->responseTime = $responseTime;
+        // Set the response time in milliseconds
+        $this->responseTime = intval($responseTime * 1000);
 
         return $this;
     }

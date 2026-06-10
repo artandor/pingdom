@@ -41,14 +41,14 @@
         {% endif %}
       </td>
       <td class="
-      {% if website.responseTime < 1 and website.responseTime > 0 %}
-        {% elseif website.responseTime < 5 and website.responseTime > 0 %}table-warning
+      {% if website.responseTime < 500 and website.responseTime > 0 %}
+        {% elseif website.responseTime < 2000 and website.responseTime > 0 %}table-warning
         {% else %}table-danger{% endif %}
       ">
         {% if website.status < 0  %}
           No response
         {% else %}
-          {{ website.responseTime }}
+          {{ website.responseTime }} ms
         {% endif %}
       </td>
       <td>{{ website.consecutiveFailAmount }}</td>

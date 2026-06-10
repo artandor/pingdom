@@ -2,19 +2,20 @@
 
 namespace App\Controller;
 
+use App\Repository\WebsiteRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Routing\Annotation\Route;
-use App\Entity\Website;
+use Symfony\Component\Routing\Attribute\Route;
 
 class WebsiteController extends AbstractController
 {
-    /**
-     * @Route("/", name="website")
-     */
+    public function __construct(private WebsiteRepository $websiteRepository)
+    {
+    }
+
+    #[Route('/', name: 'website')]
     public function index()
     {
-        $websites = $this->getDoctrine()
-        ->getRepository(Website::class)->findBy([], ["name" => "ASC"]);
+        $websites = $this->websiteRepository->findBy([], ["name" => "ASC"]);
         return $this->render('website/index.html.twig', [
             'websites' => $websites,
         ]);
