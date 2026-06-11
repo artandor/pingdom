@@ -1,0 +1,41 @@
+{#
+ Turbo Stream broadcast template for the Website entity.
+ symfony/ux-turbo's BroadcastListener renders the block matching the action.
+ Variables: entity (Website), action (string), id (string — always safe to use,
+   even after deletion when entity.id may be null).
+#}
+
+{% block create %}
+<turbo-stream action="append" target="monitor-tbody">
+    <template>
+        {{ include('website/_row.html.twig', {website: entity}) }}
+    </template>
+</turbo-stream>
+<turbo-stream action="replace" target="stats-grid">
+    <template>
+        {{ include('website/_stats.html.twig') }}
+    </template>
+</turbo-stream>
+{% endblock %}
+
+{% block update %}
+<turbo-stream action="replace" target="website-{{ entity.id }}">
+    <template>
+        {{ include('website/_row.html.twig', {website: entity}) }}
+    </template>
+</turbo-stream>
+<turbo-stream action="replace" target="stats-grid">
+    <template>
+        {{ include('website/_stats.html.twig') }}
+    </template>
+</turbo-stream>
+{% endblock %}
+
+{% block remove %}
+<turbo-stream action="remove" target="website-{{ id }}"></turbo-stream>
+<turbo-stream action="replace" target="stats-grid">
+    <template>
+        {{ include('website/_stats.html.twig') }}
+    </template>
+</turbo-stream>
+{% endblock %}

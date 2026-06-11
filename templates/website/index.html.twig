@@ -3,206 +3,69 @@
 {% block title %}Uptime Monitor{% endblock %}
 
 {% block body %}
+{{- turbo_stream_from('App\\Entity\\Website') -}}
 
-    {# ── Pre-compute summary counts ── #}
-    {% set total = websites|length %}
-    {% set ok_count   = 0 %}
-    {% set warn_count = 0 %}
-    {% set err_count  = 0 %}
-    {% for w in websites %}
-        {% if w.status == 200 and w.redirectionOk %}
-            {% set ok_count = ok_count + 1 %}
-        {% elseif w.status >= 0 and (w.status in [301, 302] or (w.status == 200 and not w.redirectionOk)) %}
-            {% set warn_count = warn_count + 1 %}
-        {% else %}
-            {% set err_count = err_count + 1 %}
-        {% endif %}
-    {% endfor %}
-
-    {# ── Header ── #}
-    <header class="app-header">
-        <a href="/" class="app-logo">
-            <div class="logo-icon">
-                <i class="bi bi-activity"></i>
-            </div>
-            Uptime Monitor
-        </a>
-        <span class="header-meta">
+{# ── Header ── #}
+<header class="app-header">
+    <a href="/" class="app-logo">
+        <div class="logo-icon">
+            <i class="bi bi-activity"></i>
+        </div>
+        Uptime Monitor
+    </a>
+    <span class="header-meta">
         <i class="bi bi-clock"></i>
         {{ "now"|date("d M Y  ·  H:i") }}
     </span>
-    </header>
+</header>
 
-    {# ── Main content ── #}
-    <main class="container-fluid px-3 px-md-4 py-4">
+{# ── Main content ── #}
+<main class="container-fluid px-3 px-md-4 py-4">
 
-        {# ── Stats row ── #}
-        <div class="stats-grid">
-            <div class="stat-card stat-total">
-                <div class="stat-label">Total sites</div>
-                <div class="stat-value">{{ total }}</div>
-            </div>
-            <div class="stat-card stat-ok">
-                <div class="stat-label">Online</div>
-                <div class="stat-value">{{ ok_count }}</div>
-            </div>
-            <div class="stat-card stat-warn">
-                <div class="stat-label">Warning</div>
-                <div class="stat-value">{{ warn_count }}</div>
-            </div>
-            <div class="stat-card stat-error">
-                <div class="stat-label">Error</div>
-                <div class="stat-value">{{ err_count }}</div>
-            </div>
-        </div>
+    {# ── Stats row ── #}
+    {{ include('website/_stats.html.twig') }}
 
-        {# ── Monitor table ── #}
-        <div class="monitor-card">
-            <div class="monitor-card-header">
-                <h1 class="monitor-card-title">
-                    <i class="bi bi-globe2 text-secondary"></i>
-                    Monitored Websites
-                </h1>
-                {% if total > 0 %}
-                    <span class="date-none">{{ total }} site{{ total > 1 ? 's' : '' }}</span>
-                {% endif %}
-            </div>
-
-            {% if websites is empty %}
-                <div class="empty-state">
-                    <i class="bi bi-globe"></i>
-                    <p>No websites being monitored yet.</p>
-                </div>
-            {% else %}
-                <div class="table-responsive">
-                    <table class="monitor-table">
-                        <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Domain</th>
-                            <th>Status</th>
-                            <th>Response time</th>
-                            <th>Fails</th>
-                            <th>Last OK</th>
-                            <th>Last alert</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {% for website in websites %}
-                            {# Determine row status once #}
-                            {% if website.status == 200 and website.redirectionOk %}
-                                {% set row_status = 'ok' %}
-                            {% elseif website.status >= 0 and (website.status in [301, 302] or (website.status == 200 and not website.redirectionOk)) %}
-                                {% set row_status = 'warn' %}
-                            {% else %}
-                                {% set row_status = 'error' %}
-                            {% endif %}
-
-                            <tr>
-                                {# Name #}
-                                <td>
-                                    <div class="site-name">{{ website.name }}</div>
-                                </td>
-
-                                {# Domain #}
-                                <td>
-                                    <a href="{{ website.domain }}" class="domain-link" target="_blank"
-                                       rel="noopener noreferrer">
-                                        {{ website.domain }}
-                                        <i class="bi bi-box-arrow-up-right"
-                                           style="font-size: 0.7rem; opacity: 0.7;"></i>
-                                    </a>
-                                    {% if website.redirectTo and not website.redirectionOk %}
-                                        <div>
-                                <span class="redirect-warning">
-                                    <i class="bi bi-exclamation-triangle-fill"></i>
-                                    Should redirect to: {{ website.redirectTo }}
-                                </span>
-                                        </div>
-                                    {% endif %}
-                                </td>
-
-                                {# HTTP Status badge #}
-                                <td>
-                                    {% if row_status == 'ok' %}
-                                        <span class="status-badge badge-ok">
-                                <span class="status-dot"></span>
-                                {{ website.status }}
-                            </span>
-                                    {% elseif row_status == 'warn' %}
-                                        <span class="status-badge badge-warn">
-                                <span class="status-dot"></span>
-                                {{ website.status < 0 ? 'Timeout' : website.status }}
-                            </span>
-                                    {% else %}
-                                        <span class="status-badge badge-error">
-                                <span class="status-dot"></span>
-                                {{ website.status < 0 ? 'No response' : website.status }}
-                            </span>
-                                    {% endif %}
-                                </td>
-
-                                {# Response time #}
-                                <td>
-                                    {% if website.status < 0 %}
-                                        <span class="rt rt-none">
-                                <i class="bi bi-dash-circle"></i> N/A
-                            </span>
-                                    {% elseif website.responseTime > 0 and website.responseTime < 500 %}
-                                        <span class="rt rt-ok">
-                                <i class="bi bi-lightning-charge-fill"></i>
-                                {{ website.responseTime }} ms
-                            </span>
-                                    {% elseif website.responseTime > 0 and website.responseTime < 2000 %}
-                                        <span class="rt rt-warn">
-                                <i class="bi bi-clock-history"></i>
-                                {{ website.responseTime }} ms
-                            </span>
-                                    {% else %}
-                                        <span class="rt rt-error">
-                                <i class="bi bi-exclamation-circle"></i>
-                                {{ website.responseTime > 0 ? website.responseTime ~ ' ms' : 'N/A' }}
-                            </span>
-                                    {% endif %}
-                                </td>
-
-                                {# Consecutive fails #}
-                                <td>
-                                    {% if website.consecutiveFailAmount == 0 %}
-                                        <span class="fail-badge fail-0">{{ website.consecutiveFailAmount }}</span>
-                                    {% elseif website.consecutiveFailAmount < 5 %}
-                                        <span class="fail-badge fail-low">{{ website.consecutiveFailAmount }}</span>
-                                    {% else %}
-                                        <span class="fail-badge fail-high">{{ website.consecutiveFailAmount }}</span>
-                                    {% endif %}
-                                </td>
-
-                                {# Last OK status #}
-                                <td>
-                                    {% if website.lastOkStatus != null %}
-                                        <span class="date-val">{{ website.lastOkStatus|date("d M Y, H:i") }}</span>
-                                    {% else %}
-                                        <span class="date-none">Never</span>
-                                    {% endif %}
-                                </td>
-
-                                {# Last alert sent #}
-                                <td>
-                                    {% if website.mailingList is empty %}
-                                        <span class="date-none">No mailing list</span>
-                                    {% elseif website.lastAlertSent != null %}
-                                        <span class="date-val">{{ website.lastAlertSent|date("d M Y, H:i") }}</span>
-                                    {% else %}
-                                        <span class="date-none">Never</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+    {# ── Monitor table ── #}
+    <div class="monitor-card">
+        <div class="monitor-card-header">
+            <h1 class="monitor-card-title">
+                <i class="bi bi-globe2 text-secondary"></i>
+                Monitored Websites
+            </h1>
+            {% set total = websites|length %}
+            {% if total > 0 %}
+            <span class="date-none">{{ total }} site{{ total > 1 ? 's' : '' }}</span>
             {% endif %}
         </div>
 
-    </main>
+        {% if websites is empty %}
+        <div class="empty-state">
+            <i class="bi bi-globe"></i>
+            <p>No websites being monitored yet.</p>
+        </div>
+        {% else %}
+        <div class="table-responsive">
+            <table class="monitor-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Domain</th>
+                        <th>Status</th>
+                        <th>Response time</th>
+                        <th>Fails</th>
+                        <th>Last OK</th>
+                        <th>Last alert</th>
+                    </tr>
+                </thead>
+                <tbody id="monitor-tbody">
+                {% for website in websites %}
+                    {{ include('website/_row.html.twig') }}
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+
+</main>
 {% endblock %}

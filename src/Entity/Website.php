@@ -4,9 +4,11 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\PrePersist;
+use Symfony\UX\Turbo\Attribute\Broadcast;
 
 #[ORM\Entity(repositoryClass: 'App\Repository\WebsiteRepository')]
 #[ORM\HasLifecycleCallbacks]
+#[Broadcast(template: 'website/_broadcast.stream.html.twig')]
 class Website
 {
     #[ORM\Id]
@@ -27,10 +29,10 @@ class Website
     private ?string $domain;
 
     #[ORM\Column(type: 'integer', nullable: true)]
-    private ?int $status;
+    private ?int $status = null;
 
     #[ORM\Column(type: 'integer', nullable: true)]
-    private ?int $responseTime;
+    private ?int $responseTime = null;
 
     #[ORM\Column(type: 'simple_array', nullable: true)]
     private array $mailingList = [];
@@ -39,16 +41,16 @@ class Website
     private int $consecutiveFailAmount = 0;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?\DateTimeInterface $lastAlertSent;
+    private ?\DateTimeInterface $lastAlertSent = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?\DateTimeInterface $lastOkStatus;
+    private ?\DateTimeInterface $lastOkStatus = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $redirectTo = null;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private ?bool $redirectionOk;
+    private ?bool $redirectionOk = null;
 
     public function __toString(): string
     {

@@ -1,0 +1,106 @@
+{# Determine row status #}
+{% if website.status == 200 and website.redirectionOk %}
+    {% set row_status = 'ok' %}
+{% elseif website.status >= 0 and (website.status in [301, 302] or (website.status == 200 and not website.redirectionOk)) %}
+    {% set row_status = 'warn' %}
+{% else %}
+    {% set row_status = 'error' %}
+{% endif %}
+
+<tr id="website-{{ website.id }}">
+    {# Name #}
+    <td>
+        <div class="site-name">{{ website.name }}</div>
+    </td>
+
+    {# Domain #}
+    <td>
+        <a href="{{ website.domain }}" class="domain-link" target="_blank" rel="noopener noreferrer">
+            {{ website.domain }}
+            <i class="bi bi-box-arrow-up-right" style="font-size: 0.7rem; opacity: 0.7;"></i>
+        </a>
+        {% if website.redirectTo and not website.redirectionOk %}
+        <div>
+            <span class="redirect-warning">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                Should redirect to: {{ website.redirectTo }}
+            </span>
+        </div>
+        {% endif %}
+    </td>
+
+    {# HTTP Status badge #}
+    <td>
+        {% if row_status == 'ok' %}
+        <span class="status-badge badge-ok">
+            <span class="status-dot"></span>
+            {{ website.status }}
+        </span>
+        {% elseif row_status == 'warn' %}
+        <span class="status-badge badge-warn">
+            <span class="status-dot"></span>
+            {{ website.status < 0 ? 'Timeout' : website.status }}
+        </span>
+        {% else %}
+        <span class="status-badge badge-error">
+            <span class="status-dot"></span>
+            {{ website.status < 0 ? 'No response' : website.status }}
+        </span>
+        {% endif %}
+    </td>
+
+    {# Response time #}
+    <td>
+        {% if website.status < 0 %}
+        <span class="rt rt-none">
+            <i class="bi bi-dash-circle"></i> N/A
+        </span>
+        {% elseif website.responseTime > 0 and website.responseTime < 500 %}
+        <span class="rt rt-ok">
+            <i class="bi bi-lightning-charge-fill"></i>
+            {{ website.responseTime }} ms
+        </span>
+        {% elseif website.responseTime > 0 and website.responseTime < 2000 %}
+        <span class="rt rt-warn">
+            <i class="bi bi-clock-history"></i>
+            {{ website.responseTime }} ms
+        </span>
+        {% else %}
+        <span class="rt rt-error">
+            <i class="bi bi-exclamation-circle"></i>
+            {{ website.responseTime > 0 ? website.responseTime ~ ' ms' : 'N/A' }}
+        </span>
+        {% endif %}
+    </td>
+
+    {# Consecutive fails #}
+    <td>
+        {% if website.consecutiveFailAmount == 0 %}
+        <span class="fail-badge fail-0">{{ website.consecutiveFailAmount }}</span>
+        {% elseif website.consecutiveFailAmount < 5 %}
+        <span class="fail-badge fail-low">{{ website.consecutiveFailAmount }}</span>
+        {% else %}
+        <span class="fail-badge fail-high">{{ website.consecutiveFailAmount }}</span>
+        {% endif %}
+    </td>
+
+    {# Last OK status #}
+    <td>
+        {% if website.lastOkStatus != null %}
+        <span class="date-val">{{ website.lastOkStatus|date("d M Y, H:i") }}</span>
+        {% else %}
+        <span class="date-none">Never</span>
+        {% endif %}
+    </td>
+
+    {# Last alert sent #}
+    <td>
+        {% if website.mailingList is empty %}
+        <span class="date-none">No mailing list</span>
+        {% elseif website.lastAlertSent != null %}
+        <span class="date-val">{{ website.lastAlertSent|date("d M Y, H:i") }}</span>
+        {% else %}
+        <span class="date-none">Never</span>
+        {% endif %}
+    </td>
+</tr>

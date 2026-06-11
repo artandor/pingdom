@@ -1,0 +1,19 @@
+{% set stats = website_stats() %}
+<div class="stats-grid" id="stats-grid">
+    <div class="stat-card stat-total">
+        <div class="stat-label">Total sites</div>
+        <div class="stat-value">{{ stats.total }}</div>
+    </div>
+    <div class="stat-card stat-ok">
+        <div class="stat-label">Online</div>
+        <div class="stat-value">{{ stats.ok }}</div>
+    </div>
+    <div class="stat-card stat-warn">
+        <div class="stat-label">Warning</div>
+        <div class="stat-value">{{ stats.warn }}</div>
+    </div>
+    <div class="stat-card stat-error">
+        <div class="stat-label">Error</div>
+        <div class="stat-value">{{ stats.err }}</div>
+    </div>
+</div>
