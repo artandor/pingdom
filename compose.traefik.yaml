@@ -1,0 +1,74 @@
+---
+# Production deployment behind an existing Traefik reverse proxy.
+#
+# This file is intended to be used ON TOP of compose.yaml and compose.prod.yaml:
+#
+#   docker compose -f compose.yaml -f compose.prod.yaml -f compose.traefik.yaml up --build -d
+#
+# Prerequisites on the server:
+#   1. A Docker network named "proxy" must exist and be attached to Traefik:
+#      docker network create proxy
+#
+#   2. Your Traefik compose file should declare that network as external:
+#        networks:
+#          proxy:
+#            external: true
+#
+#   3. Required environment variables (use a .env.local file or export them):
+#      SERVER_NAME is overridden to HTTP only because Traefik terminates TLS.
+#      APP_SECRET, POSTGRES_PASSWORD and CADDY_MERCURE_JWT_SECRET must be set.
+
+services:
+  php:
+    # Traefik routes to the container directly; do not publish host ports.
+    ports: []
+    environment:
+      # Listen on plain HTTP. TLS is handled by Traefik (Let's Encrypt).
+      SERVER_NAME: ":80"
+      DEFAULT_URI: "https://pingdom.nicolasmylle.fr"
+      MERCURE_PUBLIC_URL: "https://pingdom.nicolasmylle.fr/.well-known/mercure"
+      # Trust Traefik and the standard Docker private networks.
+      TRUSTED_PROXIES: "127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+      TRUSTED_HEADERS: "x-forwarded-for,x-forwarded-host,x-forwarded-port,x-forwarded-proto"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pingdom.rule=Host(`pingdom.nicolasmylle.fr`)"
+      - "traefik.http.routers.pingdom.entrypoints=websecure"
+      - "traefik.http.routers.pingdom.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.pingdom.service=pingdom"
+      - "traefik.http.services.pingdom.loadbalancer.server.port=80"
+    networks:
+      - default
+      - proxy
+
+  # Messenger/Scheduler worker: required to run the periodic website ping tasks.
+  worker:
+    image: ${IMAGES_PREFIX:-}app-php-prod
+    restart: unless-stopped
+    healthcheck:
+      disable: true
+    environment:
+      APP_ENV: prod
+      APP_SECRET: ${APP_SECRET}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-!ChangeMe!}@database:5432/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-16}&charset=${POSTGRES_CHARSET:-utf8}
+      MESSENGER_TRANSPORT_DSN: doctrine://default?auto_setup=0
+      MAILER_DSN: ${MAILER_DSN:-null://null}
+      MERCURE_URL: http://php/.well-known/mercure
+      MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
+      MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
+      MERCURE_JWT_SECRET: ${CADDY_MERCURE_JWT_SECRET}
+    depends_on:
+      database:
+        condition: service_healthy
+      php:
+        condition: service_healthy
+    networks:
+      - default
+    command: [ "bin/console", "messenger:consume", "async", "scheduler_default", "-vv" ]
+
+networks:
+  proxy:
+    external: true
+    # If your Traefik network has a different Docker name (e.g. reverse-proxy_proxy),
+    # set the TRAEFIK_NETWORK_NAME environment variable.
+    name: ${TRAEFIK_NETWORK_NAME:-proxy}
