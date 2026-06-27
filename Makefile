@@ -14,7 +14,7 @@ POSTGRES_PASSWORD ?= $(shell test -f .env.local && grep -E '^POSTGRES_PASSWORD='
 COMPOSE_FILES := -f compose.yaml -f compose.prod.yaml -f compose.traefik.yaml
 
 # Optional network name for the external Traefik network
-TRAEFIK_NETWORK_NAME ?= proxy
+TRAEFIK_NETWORK_NAME ?= reverse-proxy_proxy
 
 .PHONY: help prod prod-build prod-down prod-logs prod-pull prod-clean check-secrets
 
