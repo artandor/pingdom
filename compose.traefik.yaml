@@ -21,7 +21,8 @@
 services:
   php:
     # Traefik routes to the container directly; do not publish host ports.
-    ports: []
+    # !reset is required to drop the ports declared in compose.yaml.
+    ports: !reset []
     environment:
       # Listen on plain HTTP. TLS is handled by Traefik (Let's Encrypt).
       SERVER_NAME: ":80"
