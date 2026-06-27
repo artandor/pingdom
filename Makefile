@@ -24,7 +24,6 @@ help:
 
 ## prod: Deploy (or update) the production stack behind Traefik
 prod: check-secrets
-	docker compose $(COMPOSE_FILES) pull
 	docker compose $(COMPOSE_FILES) build --pull --no-cache
 	TRAEFIK_NETWORK_NAME=$(TRAEFIK_NETWORK_NAME) \
 	APP_SECRET=$(APP_SECRET) \
